@@ -4,8 +4,10 @@ CentralServer::CentralServer()
 {
 
     input.open(filepath.c_str());
-    if (input.is_open())
-        cout << "ah?" ;
+    if (input.fail()){
+        cout << "Failed to open users.txt\n";
+        exit(1);
+    }
     init();
 }
 void CentralServer::init()
@@ -13,10 +15,11 @@ void CentralServer::init()
     input.seekg(0, ios::beg);
     while (!input.eof())
     {
-        string all;
-        input >> all;
-        cout << all << endl;
-        myUsers[all];
+        string username;
+        string password;
+        input >> username;
+        input >> password;
+        myUsers[username].password = password;
     }
     input.close();
 }
@@ -27,8 +30,7 @@ bool CentralServer::login(const string &username, const string &pw, const string
         hamada curr_user;
         curr_user.active = 1;
         curr_user.socket_address = addr;
-        string all = username + ',' + pw;  
-        myUsers[all] = curr_user;
+        myUsers[username] = curr_user;
         return true;
     }
     return false;
@@ -37,24 +39,25 @@ bool CentralServer::signup(const string &username,const  string &pw)
 {
     if (is_registered(username, pw))
         return false;
-    string all = username + ',' + pw;
-    myUsers[all];
+    myUsers[username].password = pw;
     output.open(filepath.c_str());
     if (output.fail()) cout << "eh?\n";
     for (auto it =myUsers.begin(); it != myUsers.end(); ++it)
-        output << it->first << endl;
+        output << it->first << ' ' << it->second.password << endl;
+    output.close();
     return true;
 }
 bool CentralServer::is_registered(const string &username, const string &pw)
 {
     //check later for duplicate users not users and password
-    return myUsers.find(username + ',' + pw) != myUsers.end();
+    if (myUsers.find(username) != myUsers.end())
+        return myUsers[username].password == pw;
+    return false;
 }
-string CentralServer::Parser(const string& username, const string &pw)
+string CentralServer::Parser(const string& username)
 {
     html_syntax head;
-    string all = username + ',' + pw;
-    hamada current = myUsers[all];
+    hamada current = myUsers[username];
     string out = head.header_beg + username + head.header_end + head.ip_beg 
             + current.socket_address + head.ip_end 
             + head.body_beg;
@@ -66,38 +69,36 @@ string CentralServer::Parser(const string& username, const string &pw)
     }
     return out + head.body_end;
 }
-void CentralServer::unparsing(string s)
+void CentralServer::unparsing(const string &xml_syntax_input)
 {
     html_syntax head;
     string username, addr, imgname;
     vector<string> imgs;
-    int found = s.find(head.header_end);
-    username = s.substr(head.header_beg.size(), found - head.header_beg.size());
-    found = s.find(head.ip_end);
-    int end_idx = s.find(head.ip_beg);
-    addr = s.substr( end_idx + head.ip_beg.size(), found - (end_idx + head.ip_beg.size()));
+    int found = xml_syntax_input.find(head.header_end);
+    username = xml_syntax_input.substr(head.header_beg.size(), found - head.header_beg.size());
+    found = xml_syntax_input.find(head.ip_end);
+    int end_idx = xml_syntax_input.find(head.ip_beg);
+    addr = xml_syntax_input.substr( end_idx + head.ip_beg.size(), found - (end_idx + head.ip_beg.size()));
     string im;
     vector<string> images;
-    found = s.find(head.body_beg) + head.body_beg.size(); //pointing to start of lists
-    end_idx = s.find(head.body_end);
-    cout << s << endl;
+    found = xml_syntax_input.find(head.body_beg) + head.body_beg.size(); //pointing to start of lists
+    end_idx = xml_syntax_input.find(head.body_end);
+
     while(found != std::string::npos)
     {
-        int end = s.find(head.list_end, found);
-        string image_name = s.substr(found + head.list_beg.length(), end - (found + head.list_beg.length()));
-        found = s.find(head.list_beg, found+1);
+        int end = xml_syntax_input.find(head.list_end, found);
+        string image_name = xml_syntax_input.substr(found + head.list_beg.length(), end - (found + head.list_beg.length()));
+        found = xml_syntax_input.find(head.list_beg, found+1);
         images.push_back(image_name);
-        //cout << found << endl;
     }
     cout << username << endl;
     cout << addr << endl;
     for (int i = 0; i < images.size(); ++i)
         cout << images[i] << endl;
 }
-void CentralServer::uploadimage(const string &username, const string &pw, const string &imagename)
+void CentralServer::uploadimage(const string &username, const string &imagename)
 {
-    string all = username + ',' + pw;
-    myUsers[all].images.push_back(imagename);
+    myUsers[username].images.push_back(imagename);
 }
 CentralServer::~CentralServer()
 {
