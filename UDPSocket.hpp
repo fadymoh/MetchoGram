@@ -9,7 +9,6 @@
 #ifndef UDPSocket_hpp
 #define UDPSocket_hpp
 
-
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -28,12 +27,28 @@
 #include <queue>
 #include <chrono>  
 #include <fstream>
+
 using namespace std::chrono_literals;
 
 
 typedef sockaddr_in SocketAddress;
 
+enum Status {Failure, Success, Pending};
 
+struct Progress{
+
+    Status stat;
+    int totalReply, currentReply;
+    Message * Reply;
+
+    Progress(){
+        stat = Pending;
+        totalReply = 1;
+        currentReply = 0;
+        Reply = NULL;
+    }
+
+};
 class UDPSocket {
 
 protected:
@@ -52,7 +67,6 @@ protected:
     void initializeMySocket();
     void GetPrimaryIp(char* buffer, size_t buflen);
 
-
     static char* getIPfromSocketAddress(SocketAddress&);
     static std::string generateId(Message* mess);
 
@@ -68,6 +82,7 @@ protected:
     std::queue<Message *> senderArray;
 
     std::map<std::string, Message *> ackArray;
+    std::map<std::string, Progress> ProgArray;
     std::mutex receiveMx;
 
     std::mutex ackMx;
@@ -89,6 +104,7 @@ public:
 
     char * getSocketAddress();
     bool checkMessages(Message*& m);
+    void checkMessages(Message *, Message *& , int& , float&);
     void sendMessage(Message* m);
 };
 

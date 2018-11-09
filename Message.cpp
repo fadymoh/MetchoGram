@@ -198,5 +198,4 @@ std::pair<std::string, int> Message::getDestination(){
 void Message::setDestination(std::string x,  int p ){
     this->destIp = x;
     this->destPort = p;
-
 }

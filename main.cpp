@@ -27,7 +27,8 @@ int main(){
     SocketAddress servaddr;
 
 
-    Message *temp;
+    Message *sent;
+    Message *received;
     int c, serverPort;
 
 
@@ -41,14 +42,24 @@ int main(){
             cin >> serverPort;
 
         }else if(c == 2){
+            int stat;
+            float percent;
 
-            if(s->checkMessages(temp)){
-                printf("Message Received: %s\nMessageType: %d\nRPC ID: %d", (char*)temp->getMessage(), (int)temp->getMessageType(), temp->getrpc_Id());
-            }else {
-
-                cout << "No messages available " << endl;
+            if(s->checkMessages(received))
+            {
+                printf("1. Message Received: %s\nMessageType: %d\nRPC ID: %d\n", (char*)received->getMessage(), (int)received->getMessageType(), received->getrpc_Id());
 
             }
+            else printf("No Messages\n");
+
+            // s->checkMessages(sent,received,stat, percent);
+
+            // if(!stat)
+            //     cout << "Failed to send Message Main" <<endl;
+            // else if(stat == 1)
+            //     printf("Hello"),printf("2. Message Received: %s\nMessageType: %d\nRPC ID: %d\n", (char*)received->getMessage(), (int)received->getMessageType(), received->getrpc_Id());
+            // else
+            //     printf("Pending Message\nPercentate Received: %0.2f\n",percent);
 
         }else if(c == 3){
             cin.ignore();
@@ -64,8 +75,8 @@ int main(){
 
 
             // Should change this static ip with another one!
-            temp = new Message(Request, t.size()+1, rpcId++, 0, 0, 0, to_send, "10.40.33.221", serverPort);
-            s->sendMessage(temp);
+            sent = new Message(Request, t.size()+1, rpcId++, 0, 0, 0, to_send, "10.40.33.221", serverPort);
+            s->sendMessage(sent);
         }
 
         

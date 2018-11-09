@@ -101,7 +101,35 @@ UDPSocket::UDPSocket(int port){
 
 // Function that should run on the main thread
 // The purpose of this function is to check if there are any available messages to be read!
-bool UDPSocket::checkMessages(Message*& m){
+void UDPSocket::checkMessages(Message * m, Message *& rep, int& status, float &percentReceived){
+
+    receiveMx.lock();
+
+    std::ofstream out("hi.txt");
+
+    out << "Before generateID" << std::endl;
+    out << "RPC" << m->getrpc_Id()<<std::endl;
+    out << "Source" << m->getSource()<<std::endl;
+
+
+    std::string UID = generateId(m);
+    out << "After generateID" << std::endl;
+
+    if(this->ProgArray[UID].stat == Pending)
+        rep = NULL, status = 2, percentReceived = float(this->ProgArray[UID].currentReply) / float(this->ProgArray[UID].totalReply);
+    else if(this->ProgArray[UID].stat == Success)
+            out << "In Success" << std::endl, rep = this->ProgArray[UID].Reply, status = 1;
+    else
+        rep = NULL, status = 0;
+
+    receiveMx.unlock();
+
+}
+
+// Function that should run on the main thread
+// The purpose of this function is to check if there are any available messages to be read!
+
+bool UDPSocket::checkMessages(Message *& m){
 
     receiveMx.lock();
 
@@ -160,10 +188,6 @@ void UDPSocket::receiveHandler(UDPSocket* myUDPSocket){
 
     char buff[myUDPSocket->MAX_SIZE];
 
-
-    // history, map,
-
-
     std::map<std::string, std::pair<int,std::vector<Message *>>> fragmented_messages;
 
     while(true){
@@ -193,10 +217,6 @@ void UDPSocket::receiveHandler(UDPSocket* myUDPSocket){
             continue;
         }
 
-
-
-    
-
         ////////////////
         // send ack
         ////////////////
@@ -215,16 +235,18 @@ void UDPSocket::receiveHandler(UDPSocket* myUDPSocket){
         // ack sent
         ////////////////
 
-
-
-
-
         // Generate UID for request
         std::string uid = myUDPSocket->generateId(m);
 
 
+        if(m->getMessageType == Reply){
+            myUDPSocket->ProgArray[uid].totalReply = m->getFragT();
+            myUDPSocket->ProgArray[uid].currentReply = m->getFragC()+1;
+        }
+
         // CHECK IF MESSAGE WAS NEVER RECEIVED 
         // CREATE THE VECTOR OF FRAGMENTS
+
         if(fragmented_messages.find(uid) == fragmented_messages.end()){
             std::vector<Message *> frags;
             frags.resize(m->getFragT());
@@ -233,9 +255,6 @@ void UDPSocket::receiveHandler(UDPSocket* myUDPSocket){
 
             fragmented_messages[uid] = std::pair<int,std::vector<Message *>>(0,frags) ;
         }
-
-
-
 
         // ATTACH 
 
@@ -262,9 +281,16 @@ void UDPSocket::receiveHandler(UDPSocket* myUDPSocket){
 
             complete->setMessage(c, tot.size()+1);
             
+
              // check with mr rouby
             (myUDPSocket->receiveMx).lock();
             
+            if(m->getMessageType == Reply){
+
+                myUDPSocket->ProgArray[uid].Reply = complete;
+                myUDPSocket->ProgArray[uid].stat = Success;
+                
+            }   
             // Here check if it's a regular message
             // If not then should notify the sending Handler as this will be the reply for a sent packet.
             (myUDPSocket->receiveArray).push(complete);
@@ -304,7 +330,13 @@ void UDPSocket::sendingHandler(UDPSocket* myUDPSocket){
         (myUDPSocket->sendCond).notify_all();
         toBeUsed->setSource(std::string(myUDPSocket->myAddress));
         
- 
+        std::ofstream out("hi.txt");
+        out << std::string(myUDPSocket->myAddress) << std::endl;
+        
+        std::string uid = myUDPSocket->generateId(toBeUsed);
+
+        Progress nw;
+        myUDPSocket->ProgArray[uid] = nw;
 
         prepareMessage(frags, toBeUsed);
 
@@ -312,13 +344,21 @@ void UDPSocket::sendingHandler(UDPSocket* myUDPSocket){
 
         SocketAddress destinationAdd;
 
-         memset((char*)&destinationAdd, 0, sizeof(destinationAdd));
+        memset((char*)&destinationAdd, 0, sizeof(destinationAdd));
         destinationAdd.sin_family = AF_INET;
         destinationAdd.sin_addr.s_addr = htonl(INADDR_ANY);
         destinationAdd.sin_port = htons(des.second);
+        // char * host = new char[des.first.size()+1];
+        // strcpy(host, des.first.c_str());
 
-
-
+        // struct hostent *hp;     /* host information */
+        // hp = gethostbyname(host);
+        // if (!hp) {
+        // fprintf(stderr, "could not obtain address of %s\n", host);
+        //         return;
+        // }
+            
+        // memcpy((void *)&destinationAdd.sin_addr, hp->h_addr_list[0], hp->h_length);
 
         for(int i = 0; i < frags.size(); i++)
         {
@@ -334,10 +374,7 @@ void UDPSocket::sendingHandler(UDPSocket* myUDPSocket){
 
             cnt = 3;
             do {
-
-
                 int ret = (int) sendto(myUDPSocket->sock,to_send, ln, 0, (struct sockaddr *)& destinationAdd, addrlen);
-
 
                 if(ret < 0)
                     printf("Error sending packet");
@@ -346,16 +383,14 @@ void UDPSocket::sendingHandler(UDPSocket* myUDPSocket){
                 auto now = std::chrono::system_clock::now();
                 (myUDPSocket->cv_ack).wait_until(lk, (now + 5*100ms));                
                 lk.unlock();
-        
+
 
                 x = checkACK(myUDPSocket,frags[i]);
 
-
-            
             }while(cnt-- && !x);
 
             if(!x){
-                // should say that status failed
+                myUDPSocket->ProgArray[uid].stat = Failure;
                 printf("Error sending request!\n");
                 break;
             }
@@ -416,7 +451,6 @@ void UDPSocket::prepareMessage(std::vector<Message *> & frags , Message * rep){
 
 }
 
-
 void UDPSocket::addACK(UDPSocket * sock, Message * mess){
 
     int id = mess->getrpc_Id();
@@ -435,7 +469,6 @@ void UDPSocket::addACK(UDPSocket * sock, Message * mess){
     (sock->ackMx).unlock();
 
 }
-
 
 bool UDPSocket::checkACK(UDPSocket * sock, Message * mess){
     
