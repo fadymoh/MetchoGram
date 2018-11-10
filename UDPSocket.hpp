@@ -21,7 +21,7 @@
 #include "Message.hpp"
 #include <thread>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <mutex>  
 #include <condition_variable>
 #include <queue>
@@ -81,8 +81,8 @@ protected:
     std::queue<Message *> receiveArray;
     std::queue<Message *> senderArray;
 
-    std::map<std::string, Message *> ackArray;
-    std::map<std::string, Progress> ProgArray;
+    std::unordered_map<std::string, Message *> ackArray;
+    std::unordered_map<std::string, Progress> ProgArray;
     std::mutex receiveMx;
 
     std::mutex ackMx;

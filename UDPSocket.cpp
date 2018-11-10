@@ -188,11 +188,11 @@ void UDPSocket::receiveHandler(UDPSocket* myUDPSocket){
 
     char buff[myUDPSocket->MAX_SIZE];
 
-    std::map<std::string, std::pair<int,std::vector<Message *>>> fragmented_messages;
+    std::unordered_map<std::string, std::pair<int,std::vector<Message *>>> fragmented_messages;
 
     while(true){
         
-        // out << "Waitinf for packets received " << std::endl;
+        // out << "Waiting for packets received " << std::endl;
 
         //  DONT FORGET HISTORY
         int ret = (int) recvfrom(myUDPSocket->sock, buff, myUDPSocket->MAX_SIZE, 0, (struct sockaddr *)& from, &fromlen);
@@ -202,14 +202,10 @@ void UDPSocket::receiveHandler(UDPSocket* myUDPSocket){
             printf("Receive Failed...");
         }
 
-
         Message  * m = new Message(buff);
-
-       
 
         Message * ack = new Message(buff);
         ack->setAck();
-
 
         if(m->getMessageType() == Ack){
             addACK(myUDPSocket,m);
@@ -321,7 +317,6 @@ void UDPSocket::sendingHandler(UDPSocket* myUDPSocket){
     while(true){
         std::unique_lock<std::mutex> locker(myUDPSocket->sendMx);
         (myUDPSocket->sendCond).wait(locker, [&](){return (myUDPSocket->senderArray).size() > 0;});
-        
 
         Message* toBeUsed = (myUDPSocket->senderArray).front();
         (myUDPSocket->senderArray).pop();
@@ -406,9 +401,6 @@ void UDPSocket::sendingHandler(UDPSocket* myUDPSocket){
         // Each packet should be attempted to be sent max 10 times.
         // with a timeout of 1 second.
         // If a packet can't be sent, report this and add to failed queue.
-
-
-
      }
 }
 
@@ -426,13 +418,11 @@ void UDPSocket::prepareMessage(std::vector<Message *> & frags , Message * rep){
 
     subs.resize(n);
 
-    for(int i = 0; i < n; i++){
+    for(int i = 0; i < n; i++)
         subs[i] =  (i != n-1) ? rep_mess.substr(MSG_SIZE*i,MSG_SIZE) : rep_mess.substr(MSG_SIZE*i);
 
-    }
-
-    for(int i = 0; i < n; i++){
-
+    for(int i = 0; i < n; i++)
+    {
         Message * mess = new Message;
         char * s = new char[subs[i].size()+1];
         strcpy(s, subs[i].c_str());
@@ -448,7 +438,6 @@ void UDPSocket::prepareMessage(std::vector<Message *> & frags , Message * rep){
         mess->setSource(rep->getSource());
         frags.push_back(mess);
     }
-
 }
 
 void UDPSocket::addACK(UDPSocket * sock, Message * mess){
@@ -457,10 +446,7 @@ void UDPSocket::addACK(UDPSocket * sock, Message * mess){
     int frgc = mess->getFragC();
     int frgt = mess->getFragT();
 
-    
     std::string UID = (mess->getSource()) + std::to_string(id) + std::to_string(frgc) + std::to_string(frgt);
-    
-
 
     (sock->ackMx).lock();
 
@@ -470,16 +456,13 @@ void UDPSocket::addACK(UDPSocket * sock, Message * mess){
 
 }
 
-bool UDPSocket::checkACK(UDPSocket * sock, Message * mess){
-    
+bool UDPSocket::checkACK(UDPSocket * sock, Message * mess)
+{
     int id = mess->getrpc_Id();
     int frgc = mess->getFragC();
     int frgt = mess->getFragT();
 
-
     std::string UID = mess->getDestination().first + ":" + std::to_string(mess->getDestination().second)  + std::to_string(id) + std::to_string(frgc) + std::to_string(frgt);
-
-
 
     (sock->ackMx).lock();
 
@@ -497,7 +480,8 @@ bool UDPSocket::checkACK(UDPSocket * sock, Message * mess){
 
 }
 
-char* UDPSocket::getIPfromSocketAddress(SocketAddress& targetSocket){
+char* UDPSocket::getIPfromSocketAddress(SocketAddress& targetSocket)
+{
     std::string ip(inet_ntoa(targetSocket.sin_addr));
     std::string port = std::to_string(targetSocket.sin_port);
 
