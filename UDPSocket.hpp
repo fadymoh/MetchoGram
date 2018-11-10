@@ -55,7 +55,7 @@ protected:
 
     int defaultPort = 8080;
     const static int MAX_SIZE = 50000;
-    const static int MSG_SIZE = 30000;
+    const static int MSG_SIZE = 3;
 
     int sock;
     struct sockaddr_in myAddr;

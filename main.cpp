@@ -1,6 +1,7 @@
 #include <iostream>
 
 
+#include "Peer.h"
 #include "UDPSocket.hpp"
 #include "Message.hpp"
 
@@ -11,6 +12,7 @@ using namespace std;
 int main(){
 
 
+    
     UDPSocket *s;
     int rpcId = 0;
 
@@ -19,7 +21,7 @@ int main(){
     cout << "Please enter the port to bind on: " ;
     cin >> p;
 
-    s = new UDPSocket(p);
+    s = new Peer(p);
 
     printf("You're computer is running on: %s\n", s->getSocketAddress()); 
 
