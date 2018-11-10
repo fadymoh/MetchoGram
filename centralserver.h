@@ -1,7 +1,6 @@
 #ifndef CENTRALSERVER_H
 #define CENTRALSERVER_H
 
-#include <str>
 #include <iostream>
 #include <fstream>
 #include <unordered_map>
@@ -21,21 +20,20 @@ class CentralServer: public UDPSocket
         void init();
         static void receiveHandling();
       
-        static bool login(const str&, const str&, const str&);
-        static bool signup(const str&, const str&);
-        static void uploadimage(const str&, const str&);
-        static void unparsing(const str&);
-        static str requestimages();
-        static void logout();
-        static str Parser(const str&);
+        static void login(const str&, const str&, Message* ,CentralServer*);
+        static void signup(const str&, const str&, Message* ,CentralServer*);
+        static void uploadimage(const str&, const str&, Message* ,CentralServer*);
+        //static void unparsing(const str&, CentralServer*);
+        static void requestImages(const str&, Message* ,CentralServer*);
+        static void logout(const str&, Message*, CentralServer*);
 
         struct hamada{
             bool active = false;
             str socket_address = "";
-            vector<str> images; 
+            std::vector<str> images; 
             str password;
         };
-
+        
         struct html_syntax {
             str header_beg = "<name>";
             str header_end = "</name>";
@@ -47,9 +45,10 @@ class CentralServer: public UDPSocket
             str list_end = "</li>";
         };
         bool is_registered(const str&, const str&);
+        bool user_found(const str&);
         str filepath = "users.txt";
-        ifstream input;
-        ofstream output;
+        std::ifstream input;
+        std::ofstream output;
         // they key will be the username only
         std::unordered_map <str, hamada> myUsers;
 };

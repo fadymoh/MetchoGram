@@ -64,9 +64,13 @@ int main(){
         }else if(c == 3){
             cin.ignore();
             string t;
+            int opID;
+        
+            cout << "Enter OperationID: ";
+            cin >> opID;
+            cin.ignore();
             cout << "Please enter message to send: ";
             getline(cin,t);
-            
             //if(temp != NULL)
             //    delete temp;
 
@@ -75,7 +79,7 @@ int main(){
 
 
             // Should change this static ip with another one!
-            sent = new Message(Request, t.size()+1, rpcId++, 0, 0, 0, to_send, "10.40.33.221", serverPort);
+            sent = new Message(Request, t.size()+1, rpcId++, 0, 0, opID, to_send, "10.40.33.221", serverPort);
             s->sendMessage(sent);
         }
 

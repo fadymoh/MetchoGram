@@ -105,20 +105,12 @@ void UDPSocket::checkMessages(Message * m, Message *& rep, int& status, float &p
 
     receiveMx.lock();
 
-    std::ofstream out("hi.txt");
-
-    out << "Before generateID" << std::endl;
-    out << "RPC" << m->getrpc_Id()<<std::endl;
-    out << "Source" << m->getSource()<<std::endl;
-
-
     std::string UID = generateId(m);
-    out << "After generateID" << std::endl;
 
     if(this->ProgArray[UID].stat == Pending)
         rep = NULL, status = 2, percentReceived = float(this->ProgArray[UID].currentReply) / float(this->ProgArray[UID].totalReply);
     else if(this->ProgArray[UID].stat == Success)
-            out << "In Success" << std::endl, rep = this->ProgArray[UID].Reply, status = 1;
+        rep = this->ProgArray[UID].Reply, status = 1;
     else
         rep = NULL, status = 0;
 
@@ -281,7 +273,7 @@ void UDPSocket::receiveHandler(UDPSocket* myUDPSocket){
              // check with mr rouby
             (myUDPSocket->receiveMx).lock();
             
-            if(m->getMessageType == Reply){
+            if(m->getMessageType() == Reply){
 
                 myUDPSocket->ProgArray[uid].Reply = complete;
                 myUDPSocket->ProgArray[uid].stat = Success;

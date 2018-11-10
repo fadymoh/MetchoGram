@@ -184,8 +184,13 @@ void Message::setAck(){
 
 
     std::string tempSrc = this->source;
+
     this->source = this->destIp + ":" + std::to_string(this->destPort);
 
+    int found = (tempSrc.find(':'));
+    std::string DIP = tempSrc.substr(0,found);
+    int DPort = std::stoi(tempSrc.substr(found+1));
+    setDestination(DIP, DPort);
 }
 
 
