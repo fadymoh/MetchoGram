@@ -235,7 +235,7 @@ void UDPSocket::receiveHandler(UDPSocket* myUDPSocket){
         std::string uid = myUDPSocket->generateId(m);
 
 
-        if(m->getMessageType == Reply){
+        if(m->getMessageType() == Reply){
             myUDPSocket->ProgArray[uid].totalReply = m->getFragT();
             myUDPSocket->ProgArray[uid].currentReply = m->getFragC()+1;
         }

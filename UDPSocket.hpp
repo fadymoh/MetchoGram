@@ -77,7 +77,6 @@ protected:
     static bool checkACK(UDPSocket *, Message*);
     static void addACK(UDPSocket * sock, Message * mess);
 
-
     std::queue<Message *> receiveArray;
     std::queue<Message *> senderArray;
 

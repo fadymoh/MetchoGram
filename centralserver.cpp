@@ -1,10 +1,10 @@
 #include "centralserver.h"
 #include <unordered_map>
-CentralServer::CentralServer()
+CentralServer::CentralServer(int port):UDPSocket(port)
 {
-
     input.open(filepath.c_str());
-    if (input.fail()){
+    if (input.fail())
+    {
         cout << "Failed to open users.txt\n";
         exit(1);
     }
@@ -99,8 +99,47 @@ void CentralServer::unparsing(const string &xml_syntax_input)
 void CentralServer::uploadimage(const string &username, const string &imagename)
 {
     myUsers[username].images.push_back(imagename);
+    return NULL;
+}
+void CentralServer::doOperation(Message *request)
+{
+    int operationID = request.getOperation();
+    std::thread* receiverThread;
+    if (operationID == 0)
+    {
+        receiverThread = new std::(CentralServer::login, this);
+    }
+    else if (operationID == 1) 
+    {
+        receiverThread = new std::(CentralServer::signup, this);
+    }
+    else if (operationID == 2) 
+    {
+        receiverThread = new std::(CentralServer::upload, this);
+    }
+    else if (operationID == 3)
+    {
+        receiverThread = new std::(CentralServer::logout, this);
+    }
+    else if (operationID == 4) 
+    {
+        receiverThread = new std::(CentralServer::requestimages, this);
+    }
+}
+void CentralServer::listen()
+{
+    Message* myMessage;
+    while (1)
+    {
+        if (this->checkMessages(myMessage))
+        {
+           this->doOperation(myMessage); 
+        }
+    }
 }
 CentralServer::~CentralServer()
 {
 
 }
+
+

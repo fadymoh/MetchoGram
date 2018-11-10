@@ -1,51 +1,57 @@
 #ifndef CENTRALSERVER_H
 #define CENTRALSERVER_H
 
-#include <string>
+#include <str>
 #include <iostream>
 #include <fstream>
 #include <unordered_map>
 #include <vector>
-using namespace std;
-
-class CentralServer
+#include "UDPSocket.hpp"
+//using namespace std;
+typedef std::string str;
+class CentralServer: public UDPSocket
 {
     public:
-        CentralServer();
+        CentralServer(int);
         ~CentralServer();
-        bool login(const string&, const string&, const string&);
-        bool signup(const string&, const string&);
-        void uploadimage(const string&, const string&);
-        void unparsing(const string&);
-        string requestimages();
-        void logout();
-        string Parser(const string&);
+  
+        void listen();
+        void doOperation(Message *);
     private:
         void init();
+        static void receiveHandling();
+      
+        static bool login(const str&, const str&, const str&);
+        static bool signup(const str&, const str&);
+        static void uploadimage(const str&, const str&);
+        static void unparsing(const str&);
+        static str requestimages();
+        static void logout();
+        static str Parser(const str&);
 
         struct hamada{
             bool active = false;
-            string socket_address = "";
-            vector<string> images; 
-            string password;
+            str socket_address = "";
+            vector<str> images; 
+            str password;
         };
 
         struct html_syntax {
-            string header_beg = "<name>";
-            string header_end = "</name>";
-            string ip_beg = "<ip>";
-            string ip_end = "</ip>";
-            string body_beg = "<body>";
-            string body_end = "</body>";
-            string list_beg = "<li>";
-            string list_end = "</li>";
+            str header_beg = "<name>";
+            str header_end = "</name>";
+            str ip_beg = "<ip>";
+            str ip_end = "</ip>";
+            str body_beg = "<body>";
+            str body_end = "</body>";
+            str list_beg = "<li>";
+            str list_end = "</li>";
         };
-        bool is_registered(const string&, const string&);
-        string filepath = "users.txt";
+        bool is_registered(const str&, const str&);
+        str filepath = "users.txt";
         ifstream input;
         ofstream output;
         // they key will be the username only
-        unordered_map <string, hamada> myUsers;
+        std::unordered_map <str, hamada> myUsers;
 };
 
 #endif // CENTRALSERVER_H
