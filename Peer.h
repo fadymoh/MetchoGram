@@ -25,21 +25,21 @@ public:
     void LogOutServer(std::string);
     void UploadImageServer(std::string, std::string);
     void RequestImagesServer();
-    void myHandler(Message*);
     void RequestImagePeer(std::string);
     std::string retrieveImage(const std::string&);
-    static void MessageHandler(Peer *);
+    //static void MessageHandler(Peer *);
     void ChangeFlag();
-
+    void doOperation();
     bool flag;
 
 private:
+    static void myHandler(Message*, Peer*);
 
     int RPC_ID;
     std::string cover_image = "hide.jpeg";
     std::string ServerIP;
     int ServerPort;
-    std::thread * handler; 
+    //std::thread * handler; 
 };
 
 #endif

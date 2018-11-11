@@ -13,7 +13,7 @@ int main(){
 
 
     
-    UDPSocket *s;
+    Peer *s;
     int rpcId = 0;
 
 
@@ -78,7 +78,6 @@ int main(){
 
             char* to_send = new char[t.size() + 1];
             strcpy(to_send, t.c_str());
-
 
             // Should change this static ip with another one!
             sent = new Message(Request, t.size()+1, rpcId++, 0, 0, opID, to_send, "10.40.33.221", serverPort);

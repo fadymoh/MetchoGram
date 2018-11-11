@@ -10,8 +10,6 @@ Peer::Peer(int port):UDPSocket(port){
 
     this->flag = true;
 
-    handler = new std::thread(&Peer::MessageHandler, this);
-
 }
 
 void Peer::LogInServer(std::string userName, std::string Password){
@@ -87,7 +85,7 @@ void Peer::RequestImagePeer(std::string){
 void Peer::ChangeFlag(){
     flag = !flag;
 }
-void Peer::myHandler(Message *myMSG)
+void Peer::myHandler(Message *myMSG, Peer* p)
 {
     int operationID = myMSG->getOperation();
     if (operationID == 0) //handle login
@@ -119,21 +117,21 @@ void Peer::myHandler(Message *myMSG)
             steg mySteg;
             std::string meta_data = "user fady with count views of 3";
             std::string hide_image = string((char*)myMSG->getMessage());
-           // if (mySteg.encode(meta_data, this->cover_image, hide_image) == 0)
-            //{
-                //std::string img = this->retrieveImage(this->cover_image);
-                std::string img = "hello!!!!\n";
+            if (mySteg.encode(meta_data, p->cover_image, hide_image) == 0)
+            {
+                std::string img = p->retrieveImage(p->cover_image);
+                //std::string img = "hello!!!!\n";
                 char * c = new char[img.size()+1];
                 strcpy(c, img.c_str());
                 myMSG->setAck();
                 auto it = myMSG->getDestination();
                 Message *myMsg = new Message(Reply,img.size()+1,myMSG->getrpc_Id(),0,0,myMSG->getOperation(),c,it.first, it.second);
-                this->sendMessage(myMsg);
-            //}
-            //else
-            //{
-                //cout << "Something wrong with steg!\n";
-            //}
+                p->sendMessage(myMsg);
+            }
+            else
+            {
+                cout << "Something wrong with steg!\n";
+            }
         }
         else if (type == Reply) // A peer is sending an image to me!
         {
@@ -169,7 +167,22 @@ std::string Peer::retrieveImage(const std::string &path){
     return encoded; 
 
 }
-void Peer::MessageHandler(Peer * p){
+void Peer::doOperation()
+{
+    Message *m;
+    ofstream out("bye.txt");
+    while (true)
+    {
+        if (this->flag)
+        {
+            if (this->checkMessages(m))
+            {
+                std::thread* handler = new std::thread(Peer::myHandler,m, this);
+            }
+        }
+    }
+}
+/*void Peer::MessageHandler(Peer * p){
 
     std::ofstream out("bye.txt");
     Message * m;
@@ -189,3 +202,4 @@ void Peer::MessageHandler(Peer * p){
         }
     }
 }
+*/
