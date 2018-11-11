@@ -19,7 +19,7 @@ class CentralServer: public UDPSocket
     private:
         void init();
         static void receiveHandling();
-      
+        void unparsing(const str&);
         static void login(const str&, const str&, Message* ,CentralServer*);
         static void signup(const str&, const str&, Message* ,CentralServer*);
         static void uploadimage(const str&, const str&, Message* ,CentralServer*);
@@ -35,6 +35,10 @@ class CentralServer: public UDPSocket
         };
         
         struct html_syntax {
+            str html_beg = "<html>";
+            str html_end = "</html>";
+            str user_beg =  "<user>";
+            str user_end = "</user>";
             str header_beg = "<name>";
             str header_end = "</name>";
             str ip_beg = "<ip>";

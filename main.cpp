@@ -13,7 +13,7 @@ int main(){
 
 
     
-    Peer *s;
+    UDPSocket *s;
     int rpcId = 0;
 
 
@@ -21,8 +21,7 @@ int main(){
     cout << "Please enter the port to bind on: " ;
     cin >> p;
 
-    s = new Peer(p);
-
+    s = new UDPSocket(p);
     printf("You're computer is running on: %s\n", s->getSocketAddress()); 
 
 
@@ -47,12 +46,9 @@ int main(){
             int stat;
             float percent;
 
-            if(s->checkMessages(received))
-            {
+            //s->doOperation();
+            if (s->checkMessages(received))
                 printf("1. Message Received: %s\nMessageType: %d\nRPC ID: %d\n", (char*)received->getMessage(), (int)received->getMessageType(), received->getrpc_Id());
-
-            }
-            else printf("No Messages\n");
 
             // s->checkMessages(sent,received,stat, percent);
 

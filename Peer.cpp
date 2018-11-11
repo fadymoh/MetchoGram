@@ -88,6 +88,9 @@ void Peer::ChangeFlag(){
 void Peer::myHandler(Message *myMSG, Peer* p)
 {
     int operationID = myMSG->getOperation();
+    ofstream x("output.txt");
+    x << "eh!\n";
+    x.close();
     if (operationID == 0) //handle login
     {
 
@@ -117,26 +120,30 @@ void Peer::myHandler(Message *myMSG, Peer* p)
             steg mySteg;
             std::string meta_data = "user fady with count views of 3";
             std::string hide_image = string((char*)myMSG->getMessage());
+
             if (mySteg.encode(meta_data, p->cover_image, hide_image) == 0)
             {
                 std::string img = p->retrieveImage(p->cover_image);
-                //std::string img = "hello!!!!\n";
                 char * c = new char[img.size()+1];
                 strcpy(c, img.c_str());
                 myMSG->setAck();
                 auto it = myMSG->getDestination();
                 Message *myMsg = new Message(Reply,img.size()+1,myMSG->getrpc_Id(),0,0,myMSG->getOperation(),c,it.first, it.second);
+                ofstream xxx("gamedd.jpg");
+                img = base64_decode(img);
+                xxx << img;
                 p->sendMessage(myMsg);
             }
             else
             {
-                cout << "Something wrong with steg!\n";
+                //p->output << "Something wrong with steg!\n";
             }
         }
         else if (type == Reply) // A peer is sending an image to me!
         {
             std::string img = string((char*) myMSG->getMessage());
             img = base64_decode(img);
+            
             ofstream temp("temp.txt");
             temp << "ehh!!!\n" << endl;
             temp.close();

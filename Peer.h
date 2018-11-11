@@ -36,9 +36,10 @@ private:
     static void myHandler(Message*, Peer*);
 
     int RPC_ID;
-    std::string cover_image = "hide.jpeg";
+    std::string cover_image = "araf.jpg";
     std::string ServerIP;
     int ServerPort;
+    std::ofstream output;
     //std::thread * handler; 
 };
 
